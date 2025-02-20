@@ -118,3 +118,58 @@ $ curl -X 'POST' \
 "password": "Test1234"
 }'
 ```
+
+```python
+from database import SessionLocal
+from user.infra.db_models.user import User
+from datetime import datetime
+from utils.crypto import Crypto
+
+with SessionLocal() as db:
+    for i in range(50):
+        user = User(
+            id=f"UserID-{str(i).zfill(2)}",
+            name=f"TestUser{i}",
+            email=f"test-user{i}@test.com",
+            password=Crypto().encrypt("test"),
+            memo=None,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+        db.add(user)
+    db.commit()
+```
+
+# 유저 정보(이름) 변경
+```bash
+$ curl -X 'PUT' \
+'http://localhost:8080/users/01JMCNGWF4W7PYPM333TGXH675' \
+-H 'accept: application/json' \
+-H 'Content-Type: application/json' \
+-d '{
+  "name": "Dexter NEW"
+}'
+```
+
+# 유저 목록 조회 (Paging)
+```bash
+$ curl -X GET 'http://localhost:8080/users?page=2&items_per_page=3'
+```
+
+# 유저 삭제
+```bash
+$ curl -X DELETE 'http://localhost:8080/users?user_id=UserID-02'
+$ curl -X GET 'http://localhost:8080/users?page=2&items_per_page=2
+```
+
+# 유효성 검사 (Pydantic)
+```bash
+$ curl -X POST \
+'http://localhost:8080/users' \
+-H 'Content-Type: application/json' \
+-d '{
+    "name": "김수한무거북이와 두루미 삼천갑자 동방삭 치치치치치치치치치치치치치치치치치치치치치치치치치치치치치치치치치치치치칯치치치",              
+    "email": "normal_string",
+    "password": "짧은비번"
+}'
+```

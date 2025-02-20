@@ -7,7 +7,9 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
-app.container = Container()
+container = Container()
+container.wire(modules=["user.interface.controllers.user_controller"])
+
 app.include_router(user_routers)
 
 @app.get("/")
