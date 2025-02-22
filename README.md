@@ -62,6 +62,8 @@
 # 백엔드 서버 기동
 ```bash
 $ uvicorn main:app --reload --port 8080
+
+# OpenAPI 문서: http://localhost:8080/docs
 ```
 
 # DB 접속
@@ -172,4 +174,19 @@ $ curl -X POST \
     "email": "normal_string",
     "password": "짧은비번"
 }'
+```
+
+# 로그인
+```bash
+$ curl -X POST 'http://localhost:8080/users/login' \
+-H 'Content-Type: application/x-www-form-urlencoded' \
+-d 'username=dexter.haan@gmail.com&password=Test1234'
+```
+
+# 유저 정보 업데이트
+```bash
+$ curl -X PUT 'http://localhost:8080/users' \
+-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDFKTUNOR1dGNFc3UFlQTTMzM1RHWEg2NzUiLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc0MDIyMjQ4MH0.BIqrd1g5SKcXFcTp32nbFVIL6X0lN8v4RQwo1bCbfjk' \
+-H 'Content-Type: application/json' \
+-d '{"name": "Dexter NEW2"}'
 ```
