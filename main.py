@@ -1,16 +1,22 @@
-from containers import Container
 import uvicorn
+from containers import Container
 from fastapi import FastAPI
-from user.interface.controllers.user_controller import router as user_routers
 from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from user.interface.controllers.user_controller import router as user_routers
+from note.interface.controllers.note_controller import router as note_routers
+
 app = FastAPI()
 container = Container()
-container.wire(modules=["user.interface.controllers.user_controller"])
+container.wire(modules=[
+    "user.interface.controllers.user_controller",
+    "note.interface.controllers.note_controller",
+    ])
 
 app.include_router(user_routers)
+app.include_router(note_routers)
 
 @app.get("/")
 def index():
