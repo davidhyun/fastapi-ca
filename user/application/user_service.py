@@ -3,19 +3,21 @@ from datetime import datetime
 from user.domain.user import User
 from user.domain.repository.user_repo import IUserRepository
 from user.infra.repository.user_repo import UserRepository
+from user.application.email_service import EmailService
 from dependency_injector.wiring import inject
-from fastapi import HTTPException, Depends, status
+from fastapi import HTTPException, Depends, status, BackgroundTasks
 from utils.crypto import Crypto
 from common.auth import Role, create_access_token
 
 class UserService:
     @inject
-    def __init__(self, user_repo: IUserRepository):
+    def __init__(self, user_repo: IUserRepository, email_service: EmailService):
         self.user_repo = user_repo
         self.ulid = ULID()
         self.crypto = Crypto()
+        self.email_service = email_service
         
-    def create_user(self, name: str, email: str, password: str, memo: str | None = None):
+    def create_user(self, background_tasks: BackgroundTasks, name: str, email: str, password: str, memo: str | None = None):
         _user = None # 데이터베이스에서 찾은 유저 변수. 새로 생성할 유저와 구분하기 위해 _를 붙임
 
         try:
@@ -38,6 +40,8 @@ class UserService:
             updated_at = now
         )
         self.user_repo.save(user)
+        
+        background_tasks.add_task(self.email_service.send_email, user.email)
         
         return user
     

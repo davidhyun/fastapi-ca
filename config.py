@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     database_username: str
     database_password: str
     jwt_secret: str
+    email_password: str
     
 @lru_cache
 def get_settings():
