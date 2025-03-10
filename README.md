@@ -106,7 +106,7 @@
 
 - Backend : Python FastAPI
 - DB : MySQL
-
+- MessageBroker : RabbitMQ
 
 
 ### 2.1 백엔드 서버 기동
@@ -117,9 +117,47 @@
 $ uvicorn main:app --reload --port 8080
 ```
 
+### 2.2 MessageBroker 서버(RabbitMQ) 기동
+```bash
+$ docker run -d \
+  --hostname my-rabbit \
+  -e RABBITMQ_DEFAULT_USER=root \
+  -e RABBITMQ_DEFAULT_PASS=test \
+  -p 5672:5672 \
+  -p 15672:15672 \
+  rabbitmq:3-management
+```
 
+```mysql
+# 메시지 데이터베이스 생성
+$ CREATE SCHEMA messaging;
 
-### 2.2 DB 접속
+# 작업 내역 조회
+$ USE messaging;
+$ SELECT * FROM celery_taskmeta;
+```
+
+```bash
+# 워커 실행
+$ celery -A common.messaging.celery worker -n worker1 --loglevel=info
+$ celery -A common.messaging.celery worker -n worker2 --loglevel=info
+```
+
+```python
+# 작업 할당
+from test.celery_task import add
+task1 = add.delay(1,2)
+task2 = add.delay(2,3)
+print(task1.result)
+print(task2.result)
+```
+
+```bash
+# 해당 Task ID의 직렬화된 결과를 역직렬화하여 결과(result) 조회
+$ python -m test.celery_result
+```
+
+### 2.3 DB 접속
 
 ```bash
 # 컨테이너 접속
@@ -130,8 +168,7 @@ $ mysql -u root -p
 ```
 
 
-
-### 2.3 데이터베이스 사용
+### 2.4 데이터베이스 사용
 
 - 객체 관계 매핑(ORM)은 데이터베이스와 객체 지향 프로그래밍 언어 간의 데이터 변환을 도와주는 기술
 - 특정 데이터베이스에 종속되지 않아 프로그램 이식하기 용이
@@ -157,14 +194,13 @@ $ SELECT * FROM alembic _version;
 ```
 
 
-
 ## 3. 서비스 이용
 
 ### 3.1 유저 서비스
 
 ```bash
 # 유저 추가
-$ curl -X 'POST' \
+$ curl -X POST \
 'http://127.0.0.1:8080/users' \
 -H 'accept: application/json' \
 -H 'Content-Type: application/json' \
@@ -188,7 +224,7 @@ $ curl -X GET 'http://localhost:8080/users?page=2&items_per_page=3'
 
 # 유저 삭제
 $ curl -X DELETE 'http://localhost:8080/users?user_id=UserID-02'
-$ curl -X GET 'http://localhost:8080/users?page=2&items_per_page=2
+$ curl -X GET 'http://localhost:8080/users?page=2&items_per_page=2'
 
 # 유효성 검사 (Pydantic)
 $ curl -X POST \
