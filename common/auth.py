@@ -24,7 +24,11 @@ class Role(StrEnum):
 class CurrentUser:
     id: str
     role: Role
-
+    
+    # LogRecord 객체의 user 속성은 log_format에 사용되는 문자열
+    # 콘텍스트 변수에서 가져온 CurrentUser 객체를 문자열로 변환해주어야 한다
+    def __str__(self):
+        return f"{self.id}({self.role})"
 
 def get_current_user(token: Annotated[str, Depends(oauth2_shceme)]):
     payload = decode_access_token(token)
